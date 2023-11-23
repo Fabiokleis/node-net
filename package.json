@@ -1,0 +1,14 @@
+{
+ "scripts": {
+  "dev": "ts-node-dev -r tsconfig-paths/register ./src/main.ts"
+ },
+ "dependencies": {},
+ "devDependencies": {
+  "@types/mqtt": "^2.5.0",
+  "@types/node": "^20.9.4",
+  "mqtt": "^5.3.0",
+  "ts-node-dev": "^2.0.0",
+  "tsconfig-paths": "^4.2.0",
+  "typescript": "^5.3.2"
+ }
+}
