@@ -2,39 +2,45 @@ import { MqttClient } from 'mqtt';
 import * as net from 'net';
 
 export interface Worker {
-  socket: net.Socket;
-  data: Buffer;
-  pubTopic: string;
-  subTopic: string;
+    socket: net.Socket;
+    data: Buffer;
+    pubTopic: string;
+    subTopic: string;
 
-  subscribed: boolean;
+    subscribed: boolean;
 }
 
 export function subscribe(worker: Worker, client: MqttClient): Worker {
-  if (!worker.subscribed) {
-    client.subscribe(worker.subTopic, (err) => {
-      if (err) throw err;
-    });
-    worker.subscribed = true;
-  }
+    if (!worker.subscribed) {
+        client.subscribe(worker.subTopic, (err) => {
+            if (err) throw err;
+        });
+        worker.subscribed = true;
+    }
 
-  return worker;
+    return worker;
 }
 
 export function publish(worker: Worker, client: MqttClient): Worker {
-  if (worker.subscribed) {
-    client.publish(worker.pubTopic, worker.data, (err) => {
-      if (err) throw err;
-    });
-  }
+    if (worker.subscribed) {
+        client.publish(worker.pubTopic, worker.data, (err) => {
+            if (err) throw err;
+        });
+    }
 
-  return worker;
+    return worker;
 }
 
 // send returned message from broker to socket
 export function send(worker: Worker, client: MqttClient) {
-  client.on('message', (topic, message) => {
-    console.log('[topic %s - messageId %s]', topic, client.getLastMessageId());
-    worker.socket.write(message);
-  });
+    client.on('message', (topic, message) => {
+        console.log(
+            '[topic %s - messageId %s]',
+            topic,
+            client.getLastMessageId()
+        );
+        console.log('[received message]');
+        console.log(message.toString());
+        worker.socket.write(message);
+    });
 }
