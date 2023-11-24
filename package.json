@@ -2,7 +2,9 @@
  "scripts": {
   "dev": "ts-node-dev -r tsconfig-paths/register ./src/main.ts"
  },
- "dependencies": {},
+ "dependencies": {
+  "protobufjs": "^7.2.5"
+ },
  "devDependencies": {
   "@types/mqtt": "^2.5.0",
   "@types/node": "^20.9.4",
