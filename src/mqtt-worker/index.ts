@@ -9,6 +9,42 @@ export interface Worker {
 
     subscribed: boolean;
 }
+// tcp message json
+interface Message {
+    awesomeField: string;
+    deviceName?: string;
+}
+
+function parseTcpBuffer(buffer: Buffer): Message | Buffer {
+    try {
+        const { awesomeField, deviceName } = JSON.parse(buffer.toString());
+        return {
+            awesomeField,
+            deviceName,
+        };
+    } catch (err) {
+        if (!(err instanceof SyntaxError)) console.log(err);
+    }
+    return buffer;
+}
+
+function decode(root: any, data: Buffer): Message {
+    const AwesomeMessage = root.lookupType('awesomepackage.AwesomeMessage');
+    return AwesomeMessage.decode(data);
+}
+
+export function encode(root: any, data: Buffer): Buffer {
+    const AwesomeMessage = root.lookupType('awesomepackage.AwesomeMessage');
+
+    const parsed = parseTcpBuffer(data);
+    if (parsed instanceof Buffer) return data;
+
+    let message = AwesomeMessage.create(parsed);
+
+    let buffer = AwesomeMessage.encode(message).finish();
+
+    return Buffer.from(buffer);
+}
 
 export function subscribe(worker: Worker, client: MqttClient): Worker {
     if (!worker.subscribed) {
@@ -32,15 +68,16 @@ export function publish(worker: Worker, client: MqttClient): Worker {
 }
 
 // send returned message from broker to socket
-export function send(worker: Worker, client: MqttClient) {
+export function send(worker: Worker, client: MqttClient, root: any) {
     client.on('message', (topic, message) => {
         console.log(
             '[topic %s - messageId %s]',
             topic,
             client.getLastMessageId()
         );
-        console.log('[received message]');
-        console.log(message.toString());
-        worker.socket.write(message);
+
+        const decoded = decode(root, encode(root, message)); // message
+        console.log(decoded);
+        worker.socket.write(Buffer.from(JSON.stringify(decoded)));
     });
 }
