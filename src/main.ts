@@ -9,22 +9,17 @@ const topic = 'testtopic/hardcoded';
 const client = connect('mqtt://broker.emqx.io');
 const root = loadSync(path.resolve(__dirname, 'message.proto'));
 
-// tcp message
-// awesomeField: value\ndeviceName: value
+// tcp message structure json
 interface Message {
   awesomeField: string;
   deviceName?: string;
 }
 
 function parseTcpBuffer(buffer: Buffer): Message {
-  const buffStr = buffer.toString();
-  console.log(buffStr);
-  const awesomeField = buffStr.slice(0, buffStr.indexOf('\n')).split(':')[1];
-  console.log(awesomeField);
-
+  const { awesomeField, deviceName } = JSON.parse(buffer.toString());
   return {
     awesomeField,
-    deviceName: awesomeField,
+    deviceName,
   };
 }
 
@@ -55,7 +50,7 @@ function start() {
 
     socket.on('data', async (data: Buffer) => {
       workerData = subscribe(workerData, client);
-      workerData.data = data; //encode(data);
+      workerData.data = encode(data);
       socket.emit('send', publish(workerData, client));
     });
 
